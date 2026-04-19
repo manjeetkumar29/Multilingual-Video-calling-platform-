@@ -15,6 +15,10 @@ A full-stack application that provides multilingual video calling capabilities w
 - Secure authentication flows
 - Responsive UI
 
+## Overview:
+<img width="809" height="882" alt="Screenshot 2026-04-20 at 1 56 53 AM" src="https://github.com/user-attachments/assets/df948fde-9e28-43e1-9bee-e9c9139d7541" />
+
+
 ## Tech Stack
 
 ### Frontend
