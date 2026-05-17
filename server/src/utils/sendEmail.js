@@ -1,35 +1,30 @@
-const nodemailer = require('nodemailer');
-
-const transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-  port: Number(process.env.EMAIL_PORT || 465),
-  secure: true, // true for 465, false for 587
-  auth: {
-    user: process.env.EMAIL_USERNAME,
-    pass: process.env.EMAIL_PASSWORD, // Gmail app password, not normal password
-  },
-  connectionTimeout: 30000,
-  greetingTimeout: 30000,
-  socketTimeout: 30000,
-});
-
 const sendEmail = async (options) => {
   try {
     console.log(`Attempting to send email to: ${options.to}`);
 
-    // Optional: run once at app startup, not every email
-    // await transporter.verify();
+    const response = await fetch('https://api.postmarkapp.com/email', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'X-Postmark-Server-Token': process.env.POSTMARK_SERVER_TOKEN,
+      },
+      body: JSON.stringify({
+        From: process.env.EMAIL_FROM,
+        To: options.to,
+        Subject: options.subject,
+        HtmlBody: options.text,
+      }),
+    });
 
-    const mailOptions = {
-      from: `Clarity Connect <${process.env.EMAIL_FROM}>`,
-      to: options.to,
-      subject: options.subject,
-      html: options.text,
-    };
+    const data = await response.json().catch(() => ({}));
 
-    const info = await transporter.sendMail(mailOptions);
-    console.log('Email sent successfully:', info.response);
-    return info;
+    if (!response.ok) {
+      throw new Error(data.Message || `Email API error (${response.status})`);
+    }
+
+    console.log('Email sent successfully:', data.MessageID || 'sent');
+    return data;
   } catch (error) {
     console.error('Failed to send email:', error);
     throw new Error(`Failed to send email: ${error.message}`);
