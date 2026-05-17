@@ -1,46 +1,39 @@
 const nodemailer = require('nodemailer');
 
+const transporter = nodemailer.createTransport({
+  host: process.env.EMAIL_HOST || 'smtp.gmail.com',
+  port: Number(process.env.EMAIL_PORT || 465),
+  secure: true, // true for 465, false for 587
+  auth: {
+    user: process.env.EMAIL_USERNAME,
+    pass: process.env.EMAIL_PASSWORD, // Gmail app password, not normal password
+  },
+  connectionTimeout: 30000,
+  greetingTimeout: 30000,
+  socketTimeout: 30000,
+});
+
 const sendEmail = async (options) => {
-    try {
-        console.log(`Attempting to send email to: ${options.to}`);
-        
-        // Create a transporter
-        const transporter = nodemailer.createTransport({
-            service: process.env.EMAIL_SERVICE,
-            auth: {
-                user: process.env.EMAIL_USERNAME,
-                pass: process.env.EMAIL_PASSWORD,
-            },
-            debug: true, // Show debug output
-            logger: true // Log information about the mail
-        });
+  try {
+    console.log(`Attempting to send email to: ${options.to}`);
 
-        // Verify connection configuration
-        console.log('Verifying email transporter...');
-        await transporter.verify().then(() => {
-            console.log('Email server connection verified and ready to send messages');
-        }).catch(error => {
-            console.error('Email verification error:', error);
-            throw new Error(`Email verification failed: ${error.message}`);
-        });
+    // Optional: run once at app startup, not every email
+    // await transporter.verify();
 
-        // Define email options
-        const mailOptions = {
-            from: `Clarity Connect <${process.env.EMAIL_FROM}>`,
-            to: options.to,
-            subject: options.subject,
-            html: options.text,
-        };
+    const mailOptions = {
+      from: `Clarity Connect <${process.env.EMAIL_FROM}>`,
+      to: options.to,
+      subject: options.subject,
+      html: options.text,
+    };
 
-        // Send email
-        console.log('Sending email...');
-        const info = await transporter.sendMail(mailOptions);
-        console.log('Email sent successfully:', info.response);
-        return info;
-    } catch (error) {
-        console.error('Failed to send email:', error);
-        throw new Error(`Failed to send email: ${error.message}`);
-    }
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Email sent successfully:', info.response);
+    return info;
+  } catch (error) {
+    console.error('Failed to send email:', error);
+    throw new Error(`Failed to send email: ${error.message}`);
+  }
 };
 
-module.exports = sendEmail; 
+module.exports = sendEmail;
